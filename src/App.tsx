@@ -426,20 +426,17 @@ export default function App() {
           <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-romantic-pink via-romantic-rose to-romantic-pink" />
           <h2 className="text-3xl md:text-5xl font-display font-bold text-stone-800 mb-8">A Message For You</h2>
           <div className="space-y-6 text-lg md:text-xl font-serif leading-relaxed text-stone-700 italic">
-            <p>My dearest {name},</p>
+            <p>Happy birthday my love ❤️</p>
             <p>
-              As you celebrate another beautiful year of life, I wanted to take a moment to tell you just how much you mean to me. 
-              You are the light that guides me through the dark, the peace in my chaos, and the joy in every single one of my days.
+              Today is all about celebrating you and the beautiful soul you are. You bring so much joy, warmth, and light into my life in ways I never expected. Every moment with you feels special, and every memory we create together means the world to me.
             </p>
             <p>
-              Watching you grow, achieve your dreams, and share your beautiful soul with the world is my greatest privilege. 
-              I am so proud of the woman you are and the person you are becoming.
+              I just want you to know I love you more as each day pass by. Being with you has shown me how amazing love can truly feel, and I’m grateful for you every single day.
             </p>
             <p>
-              This website was made just for you, <span className="font-bold text-romantic-rose">Favour Ogayi Odey</span>. 
-              May your day be as stunning and magical as you are.
+              I hope today reminds you how deeply you are loved and appreciated. May this new year of your life bring you happiness, peace, and all the beautiful things your heart desires.
             </p>
-            <p className="pt-6 font-display text-2xl text-romantic-rose">I love you, forever and always.</p>
+            <p className="pt-6 font-display text-2xl text-romantic-rose">Happy birthday once again, my love. 💖</p>
           </div>
         </motion.div>
       </section>
@@ -603,7 +600,7 @@ export default function App() {
                   Surprise! 🌹
                 </p>
                 <p className="text-xl font-serif italic text-stone-700 leading-relaxed">
-                  "Happy Birthday, my love! As a special surprise, I want you to know that we will be getting you a new phone this month or next month. You deserve the very best, and I can't wait to see that beautiful smile when you hold it!"
+                  "I know you've always wanted to change your phone but I am giving you a promise as a gift. Before the month ends or latest next month. Be patient with this struggling boy ❤️"
                 </p>
                 <div className="mt-8 flex justify-center gap-2">
                   <Heart className="w-6 h-6 text-romantic-rose fill-romantic-rose" />

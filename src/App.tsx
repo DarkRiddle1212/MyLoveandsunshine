@@ -119,8 +119,7 @@ export default function App() {
         const { data, error } = await supabase
           .from('photos')
           .select('*')
-          .order('created_at', { ascending: false })
-          .limit(12);
+          .order('created_at', { ascending: false });
         
         if (error) throw error;
         if (data) setPhotos(data);

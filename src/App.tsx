@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import YouTube, { YouTubeProps } from 'react-youtube';
 import { supabase } from './lib/supabase';
 import { 
   Heart, 
@@ -41,6 +42,7 @@ const REASONS: Reason[] = [
 ];
 
 const BIRTHDAY_DATE = new Date('2026-03-20T00:00:00'); // Example date, user can adjust
+const YOUTUBE_VIDEO_ID = 'Lm8mIVB6W60'; // Replace with your YouTube video ID (e.g., from https://www.youtube.com/watch?v=lp-EO5I6OHQ)
 
 // --- Components ---
 
@@ -91,7 +93,7 @@ export default function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminPassword, setAdminPassword] = useState('');
   const [showAdminLogin, setShowAdminLogin] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const youtubePlayerRef = useRef<any>(null);
 
   const handleAdminLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -149,12 +151,9 @@ export default function App() {
       localStorage.setItem('birthday_girl_name', name);
       
       // Start music on successful "login"
-      if (audioRef.current) {
-        audioRef.current.play().then(() => {
-          setIsPlaying(true);
-        }).catch(err => {
-          console.log("Autoplay blocked or failed:", err);
-        });
+      if (youtubePlayerRef.current) {
+        youtubePlayerRef.current.playVideo();
+        setIsPlaying(true);
       }
     } else {
       setNameError("Oops! That's not the name of the birthday girl I'm looking for... ❤️");
@@ -262,13 +261,26 @@ export default function App() {
   };
 
   const toggleMusic = () => {
-    if (audioRef.current) {
+    if (youtubePlayerRef.current) {
       if (isPlaying) {
-        audioRef.current.pause();
+        youtubePlayerRef.current.pauseVideo();
       } else {
-        audioRef.current.play().catch(err => console.log("Audio play failed:", err));
+        youtubePlayerRef.current.playVideo();
       }
       setIsPlaying(!isPlaying);
+    }
+  };
+
+  const onYoutubeReady: YouTubeProps['onReady'] = (event) => {
+    youtubePlayerRef.current = event.target;
+    // Keep it muted initially if needed, but usually we want sound
+    // event.target.mute(); 
+  };
+
+  const onYoutubeStateChange: YouTubeProps['onStateChange'] = (event) => {
+    // If video ends, loop it
+    if (event.data === 0) {
+      event.target.playVideo();
     }
   };
 
@@ -328,12 +340,24 @@ export default function App() {
     <div className="min-h-screen bg-romantic-cream selection:bg-romantic-pink selection:text-romantic-rose overflow-x-hidden">
       <FloatingHearts />
       
-      {/* Audio Element */}
-      <audio 
-        ref={audioRef} 
-        src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" // Updated to a different track, user can replace with Vance Joy link
-        loop 
-      />
+      {/* Hidden YouTube Player */}
+      <div className="fixed -top-[1000px] -left-[1000px] pointer-events-none opacity-0">
+        <YouTube 
+          videoId={YOUTUBE_VIDEO_ID} 
+          opts={{
+            height: '1',
+            width: '1',
+            playerVars: {
+              autoplay: 0,
+              controls: 0,
+              loop: 1,
+              playlist: YOUTUBE_VIDEO_ID,
+            },
+          }}
+          onReady={onYoutubeReady}
+          onStateChange={onYoutubeStateChange}
+        />
+      </div>
 
       {/* Floating Music Control */}
       <button

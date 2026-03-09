@@ -87,12 +87,26 @@ export default function App() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [showSurprise, setShowSurprise] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [adminPassword, setAdminPassword] = useState('');
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const handleAdminLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (adminPassword === 'love') { // Simple password
+      setIsAdmin(true);
+      setShowAdminLogin(false);
+      localStorage.setItem('is_birthday_admin', 'true');
+    } else {
+      alert('Incorrect password ❤️');
+    }
+  };
 
   // Check for admin mode and load photos from API
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get('admin') === 'true') {
+    const isLocalAdmin = localStorage.getItem('is_birthday_admin') === 'true';
+    if (params.get('admin') === 'true' || isLocalAdmin) {
       setIsAdmin(true);
     }
 
@@ -523,15 +537,79 @@ export default function App() {
       {/* Footer */}
       <footer className="py-12 text-center text-stone-400 text-sm font-serif border-t border-romantic-pink/20">
         <p className="mb-4">Made with all my love for {name} • 2026</p>
-        <button 
-          onClick={() => {
-            localStorage.removeItem('birthday_girl_name');
-            window.location.reload();
-          }}
-          className="text-romantic-rose/60 hover:text-romantic-rose transition-colors underline underline-offset-4 cursor-pointer"
-        >
-          Reset Name
-        </button>
+        <div className="flex justify-center gap-6">
+          <button 
+            onClick={() => {
+              localStorage.removeItem('birthday_girl_name');
+              window.location.reload();
+            }}
+            className="text-romantic-rose/60 hover:text-romantic-rose transition-colors underline underline-offset-4 cursor-pointer"
+          >
+            Reset Name
+          </button>
+          {!isAdmin && (
+            <button 
+              onClick={() => setShowAdminLogin(true)}
+              className="text-stone-300 hover:text-romantic-rose transition-colors cursor-pointer"
+            >
+              Admin
+            </button>
+          )}
+          {isAdmin && (
+            <button 
+              onClick={() => {
+                setIsAdmin(false);
+                localStorage.removeItem('is_birthday_admin');
+              }}
+              className="text-romantic-rose hover:text-pink-600 transition-colors cursor-pointer font-bold"
+            >
+              Exit Admin Mode
+            </button>
+          )}
+        </div>
+
+        {/* Admin Login Modal */}
+        <AnimatePresence>
+          {showAdminLogin && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="bg-white p-8 rounded-3xl shadow-2xl max-w-sm w-full text-center"
+              >
+                <Camera className="w-12 h-12 text-romantic-rose mx-auto mb-4" />
+                <h3 className="text-xl font-display font-bold text-stone-800 mb-2">Admin Access</h3>
+                <p className="text-stone-500 text-sm mb-6">Enter password to upload photos</p>
+                <form onSubmit={handleAdminLogin} className="space-y-4">
+                  <input
+                    type="password"
+                    value={adminPassword}
+                    onChange={(e) => setAdminPassword(e.target.value)}
+                    placeholder="Password"
+                    className="w-full px-4 py-3 rounded-xl border border-romantic-pink outline-none text-center"
+                    autoFocus
+                  />
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setShowAdminLogin(false)}
+                      className="flex-1 py-3 text-stone-400 font-medium"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="flex-1 bg-romantic-rose text-white py-3 rounded-xl font-bold shadow-md"
+                    >
+                      Login
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </footer>
     </div>
   );

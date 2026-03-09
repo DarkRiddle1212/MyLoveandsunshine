@@ -161,27 +161,89 @@ export default function App() {
     }
   };
 
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 1200;
+          const MAX_HEIGHT = 1200;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          
+          // Compress to 0.7 quality to significantly reduce size
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+          resolve(dataUrl);
+        };
+        img.onerror = (err) => reject(err);
+      };
+      reader.onerror = (err) => reject(err);
+    });
+  };
+
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
+      setIsLoadingPhotos(true);
       for (const file of Array.from(files)) {
-        const reader = new FileReader();
-        reader.onloadend = async () => {
-          const newPhoto = { id: Date.now().toString() + Math.random(), url: reader.result as string };
+        try {
+          const compressedUrl = await compressImage(file as File);
+          const newPhoto = { 
+            id: Date.now().toString() + Math.random(), 
+            url: compressedUrl 
+          };
           
-          try {
-            const { error } = await supabase
-              .from('photos')
-              .insert([newPhoto]);
-            
-            if (error) throw error;
-            setPhotos(prev => [newPhoto, ...prev]);
-          } catch (err) {
-            console.error("Failed to upload photo:", err);
-          }
-        };
-        reader.readAsDataURL(file as File);
+          const { error } = await supabase
+            .from('photos')
+            .insert([newPhoto]);
+          
+          if (error) throw error;
+          setPhotos(prev => [newPhoto, ...prev]);
+        } catch (err) {
+          console.error("Failed to upload photo:", err);
+          alert("Failed to upload one of the photos. It might be too large.");
+        }
       }
+      setIsLoadingPhotos(false);
+    }
+  };
+
+  const clearAllPhotos = async () => {
+    if (!window.confirm("Are you sure you want to delete ALL photos? This cannot be undone. ❤️")) return;
+    
+    try {
+      const { error } = await supabase
+        .from('photos')
+        .delete()
+        .neq('id', '0'); // Delete everything
+      
+      if (error) throw error;
+      setPhotos([]);
+      alert("All photos cleared! You can now upload new ones. ✨");
+    } catch (err) {
+      console.error("Failed to clear photos:", err);
+      alert("Failed to clear photos. Please try again.");
     }
   };
 
@@ -420,11 +482,20 @@ export default function App() {
           {isAdmin && (
             <div className="mb-12 p-6 glass-card rounded-3xl inline-block">
               <p className="text-sm text-romantic-rose font-bold mb-4 uppercase tracking-widest">Admin Mode: Upload Photos</p>
-              <label className="inline-flex items-center gap-2 px-8 py-4 bg-romantic-rose text-white rounded-full font-bold shadow-lg cursor-pointer hover:bg-pink-600 transition-all transform hover:scale-105 active:scale-95">
-                <Upload className="w-5 h-5" />
-                <span>Upload Memories</span>
-                <input type="file" multiple accept="image/*" className="hidden" onChange={handlePhotoUpload} />
-              </label>
+              <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
+                <label className="inline-flex items-center gap-2 px-8 py-4 bg-romantic-rose text-white rounded-full font-bold shadow-lg cursor-pointer hover:bg-pink-600 transition-all transform hover:scale-105 active:scale-95">
+                  <Upload className="w-5 h-5" />
+                  <span>Upload Memories</span>
+                  <input type="file" multiple accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+                </label>
+                <button 
+                  onClick={clearAllPhotos}
+                  className="px-6 py-4 text-romantic-rose/60 hover:text-red-500 transition-colors text-sm font-medium"
+                >
+                  Clear All Photos
+                </button>
+              </div>
+              <p className="mt-4 text-[10px] text-stone-400 italic">Images are now automatically compressed to save space ✨</p>
             </div>
           )}
         </div>

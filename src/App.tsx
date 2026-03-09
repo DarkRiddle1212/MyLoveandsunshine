@@ -119,7 +119,8 @@ export default function App() {
         const { data, error } = await supabase
           .from('photos')
           .select('*')
-          .order('created_at', { ascending: false });
+          .order('created_at', { ascending: false })
+          .limit(12);
         
         if (error) throw error;
         if (data) setPhotos(data);
@@ -510,13 +511,23 @@ export default function App() {
 
           {photoError && (
             <div className="col-span-full py-10 px-6 bg-red-50 border border-red-100 rounded-3xl text-center">
-              <p className="text-red-500 font-serif italic mb-2">{photoError}</p>
-              <button 
-                onClick={() => window.location.reload()}
-                className="text-romantic-rose underline text-sm"
-              >
-                Try refreshing the page
-              </button>
+              <p className="text-red-500 font-serif italic mb-4">{photoError}</p>
+              <div className="flex flex-col gap-3 items-center">
+                <button 
+                  onClick={() => window.location.reload()}
+                  className="px-6 py-2 bg-white border border-red-200 rounded-full text-red-500 text-sm font-medium hover:bg-red-50 transition-colors"
+                >
+                  Try refreshing the page
+                </button>
+                {isAdmin && (
+                  <button 
+                    onClick={clearAllPhotos}
+                    className="text-romantic-rose underline text-xs font-bold mt-2"
+                  >
+                    Force Clear All Photos (Fixes Timeout)
+                  </button>
+                )}
+              </div>
             </div>
           )}
 

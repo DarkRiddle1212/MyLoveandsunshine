@@ -84,6 +84,8 @@ export default function App() {
   const [isNameEntered, setIsNameEntered] = useState(false);
   const [nameError, setNameError] = useState<string | null>(null);
   const [photos, setPhotos] = useState<Photo[]>([]);
+  const [isLoadingPhotos, setIsLoadingPhotos] = useState(true);
+  const [photoError, setPhotoError] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showSurprise, setShowSurprise] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -111,6 +113,8 @@ export default function App() {
     }
 
     const fetchPhotos = async () => {
+      setIsLoadingPhotos(true);
+      setPhotoError(null);
       try {
         const { data, error } = await supabase
           .from('photos')
@@ -119,8 +123,11 @@ export default function App() {
         
         if (error) throw error;
         if (data) setPhotos(data);
-      } catch (err) {
+      } catch (err: any) {
         console.error("Failed to fetch photos:", err);
+        setPhotoError(err.message || "Failed to load photos. Please check your Supabase connection.");
+      } finally {
+        setIsLoadingPhotos(false);
       }
     };
 
@@ -423,37 +430,59 @@ export default function App() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <AnimatePresence>
-            {photos.map((photo) => (
-              <motion.div
-                key={photo.id}
-                layout
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                whileHover={{ scale: 1.02 }}
-                className="relative aspect-square rounded-3xl overflow-hidden shadow-md group"
+          {isLoadingPhotos && (
+            <div className="col-span-full py-20 text-center">
+              <div className="w-12 h-12 border-4 border-romantic-pink border-t-romantic-rose rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-stone-400 font-serif italic">Loading our memories...</p>
+            </div>
+          )}
+
+          {photoError && (
+            <div className="col-span-full py-10 px-6 bg-red-50 border border-red-100 rounded-3xl text-center">
+              <p className="text-red-500 font-serif italic mb-2">{photoError}</p>
+              <button 
+                onClick={() => window.location.reload()}
+                className="text-romantic-rose underline text-sm"
               >
-                <img 
-                  src={photo.url} 
-                  alt="Memory" 
-                  className="w-full h-full object-cover"
-                  referrerPolicy="no-referrer"
-                />
-                {isAdmin && (
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <button 
-                      onClick={() => removePhoto(photo.id)}
-                      className="p-3 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/40 transition-colors"
-                    >
-                      <X className="w-6 h-6" />
-                    </button>
-                  </div>
-                )}
-              </motion.div>
-            ))}
-          </AnimatePresence>
-          {photos.length === 0 && (
+                Try refreshing the page
+              </button>
+            </div>
+          )}
+
+          {!isLoadingPhotos && !photoError && (
+            <AnimatePresence>
+              {photos.map((photo) => (
+                <motion.div
+                  key={photo.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  whileHover={{ scale: 1.02 }}
+                  className="relative aspect-square rounded-3xl overflow-hidden shadow-md group"
+                >
+                  <img 
+                    src={photo.url} 
+                    alt="Memory" 
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                  {isAdmin && (
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <button 
+                        onClick={() => removePhoto(photo.id)}
+                        className="p-3 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/40 transition-colors"
+                      >
+                        <X className="w-6 h-6" />
+                      </button>
+                    </div>
+                  )}
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          )}
+          
+          {!isLoadingPhotos && !photoError && photos.length === 0 && (
             <div className="col-span-full py-20 text-center border-2 border-dashed border-romantic-pink rounded-3xl text-stone-400 font-serif italic">
               {isAdmin ? "No memories uploaded yet. Start by adding some photos!" : "Our beautiful memories will appear here soon..."}
             </div>
